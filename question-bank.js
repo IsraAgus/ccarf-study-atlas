@@ -197,4 +197,38 @@ window.CCARF_QUESTION_BANK = [
     ruleES:"Reanuda contexto estable, refresca explícitamente el estado externo que cambió.",
     doc:{label:"Claude Code CLI reference",url:"https://code.claude.com/docs/en/cli-reference"}
   }
+  ,{
+    id:"CODE-D3-PLAN-01",
+    scenarioId:"code-generation",
+    scenarioEN:"You are using Claude Code for code generation, refactoring, debugging, and documentation across a production repository. The team wants Claude to make safe changes while preserving project conventions and avoiding premature edits when architecture is still uncertain.",
+    scenarioES:"Estás usando Claude Code para generación de código, refactoring, debugging y documentación en un repositorio de producción. El equipo quiere que Claude haga cambios seguros, preserve las convenciones del proyecto y evite ediciones prematuras cuando la arquitectura todavía es incierta.",
+    lessonId:"d3-workflow", domain:"D3", type:"single",
+    questionEN:"An engineer must replace a deprecated messaging library across roughly 50 files. Two migration approaches are both viable but have different infrastructure implications. How should the work begin in Claude Code?",
+    questionES:"Un ingeniero debe reemplazar una librería de mensajería obsoleta en aproximadamente 50 archivos. Dos enfoques de migración son viables, pero tienen implicaciones de infraestructura diferentes. ¿Cómo debería comenzar el trabajo en Claude Code?",
+    options:[
+      {en:"Enter plan mode so Claude explores the codebase read-only, compares the viable approaches, and proposes a migration plan before edits.",es:"Entrar en plan mode para que Claude explore el codebase en modo read-only, compare los enfoques viables y proponga un plan antes de editar."},
+      {en:"Write a detailed upfront prompt naming every file to change, then run direct execution against that fixed specification.",es:"Escribir un prompt detallado que enumere cada archivo a modificar y ejecutar directamente contra esa especificación fija."},
+      {en:"Begin direct execution on a small subset of files and let the emerging changes reveal which architecture fits.",es:"Comenzar ejecución directa sobre un pequeño subconjunto de archivos y dejar que los cambios revelen qué arquitectura encaja."},
+      {en:"Use direct execution with /compact after every batch so growing context does not derail the migration.",es:"Usar ejecución directa con /compact después de cada lote para que el crecimiento del contexto no descarrile la migración."}
+    ],
+    correct:[0],
+    wrongReasonEN:[
+      "",
+      "The architecture is not decided yet, so prescribing every file and implementation up front assumes facts that still need investigation.",
+      "Editing before choosing between materially different architectures creates rework risk and mixes exploration with mutation.",
+      "Compaction addresses context size, not the unresolved architectural choice that should be investigated before edits."
+    ],
+    wrongReasonES:[
+      "",
+      "La arquitectura todavía no está decidida, por lo que prescribir todos los archivos e implementación de antemano asume hechos que aún deben investigarse.",
+      "Editar antes de elegir entre arquitecturas materialmente distintas aumenta el riesgo de retrabajo y mezcla exploración con mutación.",
+      "La compactación aborda tamaño de contexto, no la decisión arquitectónica no resuelta que debe investigarse antes de editar."
+    ],
+    rationaleEN:"The task is broad and architecturally uncertain. Plan mode separates exploration and design from mutation, allowing Claude to inspect dependencies and compare approaches before making repository changes.",
+    rationaleES:"La tarea es amplia y existe incertidumbre arquitectónica. Plan mode separa exploración y diseño de la mutación, permitiendo inspeccionar dependencias y comparar enfoques antes de modificar el repositorio.",
+    ruleEN:"High scope + unresolved architecture → plan first. Bounded, well-understood change → direct execution.",
+    ruleES:"Alcance alto + arquitectura no resuelta → planifica primero. Cambio acotado y bien entendido → ejecución directa.",
+    doc:{label:"Claude Code common workflows",url:"https://code.claude.com/docs/en/common-workflows"}
+  }
+
 ];
