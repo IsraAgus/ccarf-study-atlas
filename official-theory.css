@@ -1,0 +1,30 @@
+.official-theory{margin-top:38px}
+.theory-heading{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:22px;align-items:start;margin-bottom:18px}
+.theory-kicker{text-transform:uppercase;letter-spacing:.12em;color:#9fc3ed;font-size:10px;font-weight:900;margin-bottom:7px}
+.theory-trust-badge{width:168px;border:1px solid rgba(125,167,217,.38);background:rgba(125,167,217,.08);border-radius:16px;padding:14px;text-align:center}
+.theory-trust-badge strong{font-size:24px;display:block;color:#b9d4f4;line-height:1}
+.theory-trust-badge span{font-size:10px;color:#91a4ba;line-height:1.35;margin-top:7px}
+.theory-stack{display:grid;gap:14px}
+.theory-card{display:grid;grid-template-columns:54px minmax(0,1fr);gap:0;background:linear-gradient(145deg,#141a22,#10151c);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.theory-index{display:flex;align-items:flex-start;justify-content:center;padding-top:21px;border-right:1px solid var(--line);color:#7193bc;font-size:10px;font-weight:900;letter-spacing:.12em;background:rgba(125,167,217,.035)}
+.theory-card-body{padding:20px 22px}
+.theory-card h4{font-size:18px;margin:0 0 11px;color:#edf4fc}
+.theory-copy p{margin:0 0 12px;color:#bbc5d2;font-size:14px;line-height:1.72}
+.theory-copy p:last-child{margin-bottom:0}
+.theory-copy ul{margin:10px 0 0;padding-left:20px;color:#bbc5d2}
+.theory-copy li{margin:5px 0}
+.theory-copy code{font-size:12px}
+.official-source-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:17px;padding-top:13px;border-top:1px solid rgba(41,49,64,.75)}
+.official-source-pill{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:7px;padding:6px 9px;border:1px solid rgba(125,167,217,.28);background:rgba(125,167,217,.055);border-radius:9px;text-decoration:none;max-width:100%}
+.official-source-pill:hover{text-decoration:none;border-color:rgba(125,167,217,.6);background:rgba(125,167,217,.09)}
+.official-source-pill span{font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:#7596bd;font-weight:900}
+.official-source-pill strong{font-size:10px;color:#c2d7ef;font-weight:700;white-space:normal}
+.official-source-pill b{color:#7fa4cf;font-size:10px}
+.theory-boundary-note{margin-top:14px;padding:13px 15px;border-radius:12px;border:1px dashed #34445a;color:#8ea0b5;font-size:11px;background:rgba(125,167,217,.03)}
+@media(max-width:760px){
+  .theory-heading{grid-template-columns:1fr}
+  .theory-trust-badge{width:100%;text-align:left}
+  .theory-trust-badge strong{display:inline;margin-right:8px}
+  .theory-card{grid-template-columns:38px minmax(0,1fr)}
+  .theory-card-body{padding:17px}
+}
