@@ -17,7 +17,8 @@ const jsFiles = [
   "question-templates-multiple.js",
   "question-variants.js",
   "mock-generator.js",
-  "exam-engine.js"
+  "exam-engine.js",
+  "mock-exam-ui.js"
 ];
 
 for (const file of jsFiles) {
@@ -38,7 +39,8 @@ for (const script of [
   "question-templates-multiple.js",
   "question-variants.js",
   "mock-generator.js",
-  "exam-engine.js"
+  "exam-engine.js",
+  "mock-exam-ui.js"
 ]) {
   check("Loaded in index: " + script, index.includes(script));
 }
@@ -60,6 +62,13 @@ check("Per-profile question history", engine.includes('key("question-stats")'));
 check("Per-profile mode", engine.includes('"ccarf-mode-" + profile'));
 check("Random unseen lesson rotation", engine.includes("const unseen = list.filter"));
 check("Generic quick-check removed at runtime", engine.includes('document.querySelector(".exam-box")?.closest(".section")'));
+
+const mockUi = fs.readFileSync("mock-exam-ui.js","utf8");
+check("Mock 60 launcher exists", mockUi.includes("Mock 60"));
+check("Mock uses 120-minute timer", mockUi.includes("120*60*1000"));
+check("Mock defers review until finish", mockUi.includes("finishExam") && mockUi.includes("Mock Review"));
+check("Mock supports flag for review", mockUi.includes("flagged") && mockUi.includes("mockFlagBtn"));
+check("Mock can generate a new random version", mockUi.includes("mockNewVersion") && mockUi.includes("startNewExam"));
 
 const storage = new Map();
 const localStorage = {
