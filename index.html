@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="CCAR-F bilingual study guide based on candidate exam insights and official Anthropic documentation." />
+  <title>CCAR-F Study Atlas</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark">C</div>
+        <div>
+          <strong>CCAR-F Study Atlas</strong>
+          <span>Nov 6 · 2026</span>
+        </div>
+      </div>
+
+      <div class="sidebar-actions">
+        <label class="search-box" aria-label="Buscar tema">
+          <span>⌕</span>
+          <input id="searchInput" type="search" placeholder="Buscar / Search" />
+        </label>
+        <div class="language-switch" role="group" aria-label="Language mode">
+          <button data-lang="es" class="lang-btn">ES</button>
+          <button data-lang="bi" class="lang-btn active">ES+EN</button>
+          <button data-lang="en" class="lang-btn">EN</button>
+        </div>
+      </div>
+
+      <nav id="lessonNav" class="lesson-nav" aria-label="Study topics"></nav>
+
+      <div class="sidebar-footer">
+        <div class="progress-line"><span id="progressBar"></span></div>
+        <div class="progress-meta"><span>Progreso / Progress</span><strong id="progressText">0%</strong></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button id="menuBtn" class="icon-btn mobile-only" aria-label="Abrir navegación">☰</button>
+        <div>
+          <div class="eyebrow">Claude Certified Architect — Foundations</div>
+          <h1 id="pageTitle">Study Atlas</h1>
+        </div>
+        <div class="top-actions">
+          <button id="focusBtn" class="focus-btn">25:00 · Focus</button>
+          <button id="resetBtn" class="icon-btn" title="Reset progress">↺</button>
+        </div>
+      </header>
+
+      <section id="content" class="content" aria-live="polite"></section>
+
+      <footer class="site-footer">
+        <p>Candidate insights guide exam strategy. Official Anthropic documentation defines current technical behavior.</p>
+        <p>Built as a static site for Vercel · Progress stays in your browser.</p>
+      </footer>
+    </main>
+  </div>
+
+  <div id="timerToast" class="timer-toast" aria-live="assertive"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
