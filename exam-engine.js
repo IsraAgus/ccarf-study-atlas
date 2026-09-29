@@ -49,7 +49,9 @@
     const list = questionsForLesson(l);
     if (!list.length) return null;
     const history = loadJSON(key("question-stats"), { byQuestion: {} }).byQuestion || {};
-    return list.find((q) => !history[q.id]) || list[0];
+    const unseen = list.filter(q => !history[q.id]);
+    const pool = unseen.length ? unseen : list;
+    return pool[Math.floor(Math.random() * pool.length)];
   }
 
   function sameSet(a, b) {
@@ -322,6 +324,16 @@
       saveJSON(key("question-stats"), stats);
 
       renderFeedback(q, selected, correct);
+
+      const feedback = root.querySelector(".question-feedback");
+      if (feedback) {
+        const next = document.createElement("button");
+        next.className = "next-question";
+        next.innerHTML = '<span class="es-only">Otra pregunta aleatoria</span><span class="en-only">Another random question</span>';
+        next.onclick = () => render();
+        feedback.appendChild(next);
+      }
+
       applyLang();
     };
   }
