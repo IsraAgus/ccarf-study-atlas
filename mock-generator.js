@@ -106,6 +106,39 @@
       take(bank(),count-selected.length,4);
     }
 
+    const multipleTarget = Math.max(6, Math.round(count * 0.15));
+    let multipleCount = selected.filter(q => q.type === "multiple").length;
+    if (multipleCount < multipleTarget) {
+      const multiCandidates = shuffle(
+        pool.filter(q => q.type === "multiple" && !usedIds.has(q.id)),
+        rng
+      ).sort((a,b) => Number(seen.has(a.id)) - Number(seen.has(b.id)));
+
+      for (const candidate of multiCandidates) {
+        if (multipleCount >= multipleTarget) break;
+        const family = candidate.family || candidate.id;
+        if ((familyCounts.get(family) || 0) >= 3) continue;
+
+        let replaceIndex = selected.findIndex(q =>
+          q.type !== "multiple" && q.domain === candidate.domain
+        );
+        if (replaceIndex < 0) {
+          replaceIndex = selected.findIndex(q => q.type !== "multiple");
+        }
+        if (replaceIndex < 0) break;
+
+        const removed = selected[replaceIndex];
+        const removedFamily = removed.family || removed.id;
+        familyCounts.set(removedFamily, Math.max(0, (familyCounts.get(removedFamily) || 1) - 1));
+        usedIds.delete(removed.id);
+
+        selected[replaceIndex] = candidate;
+        usedIds.add(candidate.id);
+        familyCounts.set(family, (familyCounts.get(family) || 0) + 1);
+        multipleCount++;
+      }
+    }
+
     const finalQuestions = shuffle(selected.slice(0,count),rng).map(q=>remapOptions(q,rng));
     if (remember) writeHistory(profile,finalQuestions.map(q=>q.id));
 
