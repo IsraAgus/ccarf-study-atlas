@@ -1,47 +1,50 @@
 import fs from "node:fs";
+import vm from "node:vm";
 import { execFileSync } from "node:child_process";
 
 const fail = [];
 const pass = [];
 
 function check(name, condition, detail = "") {
-  if (condition) pass.push({ name, detail });
-  else fail.push({ name, detail });
+  if (condition) pass.push({name,detail});
+  else fail.push({name,detail});
 }
 
-for (const file of ["app.js", "question-bank.js", "exam-engine.js"]) {
+const jsFiles = [
+  "app.js",
+  "question-bank.js",
+  "question-templates.js",
+  "question-templates-multiple.js",
+  "question-variants.js",
+  "mock-generator.js",
+  "exam-engine.js"
+];
+
+for (const file of jsFiles) {
   try {
-    execFileSync(process.execPath, ["--check", file], { stdio: "pipe" });
-    pass.push({ name: "Syntax: " + file });
+    execFileSync(process.execPath, ["--check", file], {stdio:"pipe"});
+    pass.push({name:"Syntax: " + file});
   } catch (error) {
-    fail.push({ name: "Syntax: " + file, detail: error.stderr?.toString() || error.message });
+    fail.push({name:"Syntax: " + file, detail:error.stderr?.toString() || error.message});
   }
 }
 
-const index = fs.readFileSync("index.html", "utf8");
-const bankSrc = fs.readFileSync("question-bank.js", "utf8");
-const engine = fs.readFileSync("exam-engine.js", "utf8");
+const index = fs.readFileSync("index.html","utf8");
+const engine = fs.readFileSync("exam-engine.js","utf8");
 
-check("Question bank is loaded", index.includes("question-bank.js"));
-check("Exam engine is loaded", index.includes("exam-engine.js"));
-check("Old generic Study/Exam layer is not loaded", !index.includes("study-exam.js"));
-check("Certification styles are loaded", index.includes("exam-engine.css"));
-
-const scenarioIds = [
-  "customer-support",
-  "code-generation",
-  "multi-agent-research",
-  "developer-productivity",
-  "claude-code-ci",
-  "structured-extraction"
-];
-for (const scenario of scenarioIds) {
-  check("Scenario present: " + scenario, bankSrc.includes('scenarioId:"' + scenario + '"'));
+for (const script of [
+  "question-bank.js",
+  "question-templates.js",
+  "question-templates-multiple.js",
+  "question-variants.js",
+  "mock-generator.js",
+  "exam-engine.js"
+]) {
+  check("Loaded in index: " + script, index.includes(script));
 }
 
-check("Single-response support", bankSrc.includes('type:"single"') && engine.includes('"checkbox" : "radio"'));
-check("Multiple-response support", bankSrc.includes('type:"multiple"') && engine.includes("selectCount"));
-check("Four-option format represented", (bankSrc.match(/options:\[/g) || []).length >= 6);
+check("Old generic Study/Exam layer is not loaded", !index.includes("study-exam.js"));
+check("Certification styles are loaded", index.includes("exam-engine.css"));
 check("SCENARIO label rendered", engine.includes("SCENARIO:"));
 check("QUESTION label rendered", engine.includes("QUESTION:"));
 check("Study Mode exists", engine.includes('mode === "study"'));
@@ -51,14 +54,87 @@ check("Correct answer shown", engine.includes("Correct answer:") && engine.inclu
 check("Decision rule shown in Study Mode", engine.includes("Decision rule:") && engine.includes("Regla de decisión:"));
 check("Internal concept review link", engine.includes('href="#concept-review"'));
 check("Official documentation link", engine.includes("q.doc.url"));
-check("Two profiles", engine.includes('profile = localStorage.getItem("ccarf-profile")') && engine.includes('data-profile="partner"'));
+check("Two profiles", engine.includes('localStorage.getItem("ccarf-profile")') && engine.includes('data-profile="partner"'));
 check("Per-profile lesson completion", engine.includes('key("completed")'));
 check("Per-profile question history", engine.includes('key("question-stats")'));
 check("Per-profile mode", engine.includes('"ccarf-mode-" + profile'));
+check("Random unseen lesson rotation", engine.includes("const unseen = list.filter"));
 check("Generic quick-check removed at runtime", engine.includes('document.querySelector(".exam-box")?.closest(".section")'));
 
+const storage = new Map();
+const localStorage = {
+  getItem:k => storage.has(k) ? storage.get(k) : null,
+  setItem:(k,v) => storage.set(k,String(v)),
+  removeItem:k => storage.delete(k)
+};
+const sandbox = {window:{},localStorage,console,Date,Math};
+vm.createContext(sandbox);
+
+for (const file of [
+  "question-bank.js",
+  "question-templates.js",
+  "question-templates-multiple.js",
+  "question-variants.js",
+  "mock-generator.js"
+]) {
+  vm.runInContext(fs.readFileSync(file,"utf8"),sandbox,{filename:file});
+}
+
+const bank = sandbox.window.CCARF_QUESTION_BANK || [];
+const meta = sandbox.window.CCARF_BANK_META || {};
+const scenarios = sandbox.window.CCARF_SCENARIOS || {};
+
+check("Expanded bank has at least 200 questions", bank.length >= 200, "count=" + bank.length);
+check("At least 30 template families", (meta.templateFamilies || 0) >= 30, "families=" + meta.templateFamilies);
+check("Six scenario definitions", Object.keys(scenarios).length === 6);
+
+const scenarioIds = [
+  "customer-support",
+  "code-generation",
+  "multi-agent-research",
+  "developer-productivity",
+  "claude-code-ci",
+  "structured-extraction"
+];
+
+for (const scenarioId of scenarioIds) {
+  const count = bank.filter(q => q.scenarioId === scenarioId).length;
+  check("Scenario bank >= 30: " + scenarioId, count >= 30, "count=" + count);
+}
+
+const malformed = bank.filter(q =>
+  !q.id || !q.scenarioId || !q.domain || !q.questionEN || !q.questionES ||
+  !Array.isArray(q.options) || q.options.length !== 4 ||
+  q.options.some(o => !o.en || !o.es) ||
+  !Array.isArray(q.correct) || !q.correct.length ||
+  !Array.isArray(q.wrongReasonEN) || q.wrongReasonEN.length !== 4 ||
+  !Array.isArray(q.wrongReasonES) || q.wrongReasonES.length !== 4 ||
+  !q.rationaleEN || !q.rationaleES || !q.ruleEN || !q.ruleES ||
+  !q.doc || !q.doc.url
+);
+check("Every question satisfies the bilingual 4-option schema", malformed.length === 0, "malformed=" + malformed.slice(0,5).map(q=>q.id).join(","));
+
+check("Single-response questions exist", bank.some(q => q.type === "single"));
+check("Multiple-response questions exist", bank.filter(q => q.type === "multiple").length >= 20, "multiple=" + bank.filter(q=>q.type==="multiple").length);
+
+const generator = sandbox.window.CCARF_EXAM_GENERATOR;
+check("Mock generator exposed", Boolean(generator && generator.generate));
+
+if (generator && generator.generate) {
+  const exam1 = generator.generate({profile:"audit",count:60,seed:"audit-version-1",scenarioCount:4,remember:false});
+  const exam2 = generator.generate({profile:"audit",count:60,seed:"audit-version-2",scenarioCount:4,remember:false});
+
+  check("Generated exam has 60 questions", exam1.questions.length === 60);
+  check("Generated exam uses 4 scenarios", exam1.scenarioIds.length === 4);
+  check("Generated exam has unique question IDs", new Set(exam1.questions.map(q=>q.id)).size === 60);
+  check("Generated exam includes multiple-response questions", exam1.questions.filter(q=>q.type==="multiple").length >= 6);
+  check("Generated exam covers all five domains", ["D1","D2","D3","D4","D5"].every(d => exam1.questions.some(q=>q.domain===d)));
+  check("Different seeds create different versions", exam1.questions.map(q=>q.id).join("|") !== exam2.questions.map(q=>q.id).join("|"));
+  check("Option shuffling preserves four choices", exam1.questions.every(q=>q.options.length===4 && q.correct.every(i=>i>=0 && i<4)));
+}
+
 console.log("\nCCAR-F Auditor\n==============");
-for (const item of pass) console.log("PASS  " + item.name);
+for (const item of pass) console.log("PASS  " + item.name + (item.detail ? " — " + item.detail : ""));
 for (const item of fail) console.log("FAIL  " + item.name + (item.detail ? " — " + item.detail : ""));
 
 console.log("\nSummary: " + pass.length + " PASS / " + fail.length + " FAIL");
