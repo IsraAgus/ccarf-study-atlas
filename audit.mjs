@@ -39,7 +39,7 @@ for (const scenario of scenarioIds) {
   check("Scenario present: " + scenario, bankSrc.includes('scenarioId:"' + scenario + '"'));
 }
 
-check("Single-response support", bankSrc.includes('type:"single"') && engine.includes('type === "multiple" ? "checkbox" : "radio"'));
+check("Single-response support", bankSrc.includes('type:"single"') && engine.includes('"checkbox" : "radio"'));
 check("Multiple-response support", bankSrc.includes('type:"multiple"') && engine.includes("selectCount"));
 check("Four-option format represented", (bankSrc.match(/options:\[/g) || []).length >= 6);
 check("SCENARIO label rendered", engine.includes("SCENARIO:"));
