@@ -18,7 +18,9 @@ const jsFiles = [
   "question-variants.js",
   "mock-generator.js",
   "exam-engine.js",
-  "mock-exam-ui.js"
+  "mock-exam-ui.js",
+  "official-theory.js",
+  "official-theory-ui.js"
 ];
 
 for (const file of jsFiles) {
@@ -40,7 +42,9 @@ for (const script of [
   "question-variants.js",
   "mock-generator.js",
   "exam-engine.js",
-  "mock-exam-ui.js"
+  "mock-exam-ui.js",
+  "official-theory.js",
+  "official-theory-ui.js"
 ]) {
   check("Loaded in index: " + script, index.includes(script));
 }
@@ -70,6 +74,15 @@ check("Mock defers review until finish", mockUi.includes("finishExam") && mockUi
 check("Mock supports flag for review", mockUi.includes("flagged") && mockUi.includes("mockFlagBtn"));
 check("Mock can generate a new random version", mockUi.includes("mockNewVersion") && mockUi.includes("startNewExam"));
 
+
+const theoryUi = fs.readFileSync("official-theory-ui.js","utf8");
+check("Official theory stylesheet loaded", index.includes("official-theory.css"));
+check("Official theory data loaded", index.includes("official-theory.js"));
+check("Official theory renderer loaded", index.includes("official-theory-ui.js"));
+check("Theory rendered before exam engine", index.indexOf("official-theory-ui.js") < index.indexOf("exam-engine.js"));
+check("Theory source boundary label exists", theoryUi.includes("100%") && theoryUi.includes("official Anthropic"));
+check("Theory links back to official documentation", theoryUi.includes("official-source-pill"));
+
 const storage = new Map();
 const localStorage = {
   getItem:k => storage.has(k) ? storage.get(k) : null,
@@ -88,6 +101,36 @@ for (const file of [
 ]) {
   vm.runInContext(fs.readFileSync(file,"utf8"),sandbox,{filename:file});
 }
+
+
+vm.runInContext(fs.readFileSync("official-theory.js","utf8"),sandbox,{filename:"official-theory.js"});
+const theory = sandbox.window.CCARF_OFFICIAL_THEORY || {};
+const theoryLessonIds = [
+  "foundations",
+  "d1-loop",
+  "d1-orchestration",
+  "d1-enforcement",
+  "d2-tools",
+  "d2-mcp",
+  "d3-code",
+  "d3-workflow",
+  "d4-prompt",
+  "d4-structured",
+  "d5-context"
+];
+check("Official theory covers all technical lessons", theoryLessonIds.every(id => theory[id]));
+for (const id of theoryLessonIds) {
+  const entry = theory[id];
+  check("Theory has >=3 sections: " + id, Array.isArray(entry?.sections) && entry.sections.length >= 3, "sections=" + (entry?.sections?.length || 0));
+  check("Theory is bilingual: " + id, Boolean(entry?.leadES && entry?.leadEN && entry.sections.every(s => s.titleES && s.titleEN && s.bodyES?.length && s.bodyEN?.length)));
+}
+const theorySources = Object.values(theory).flatMap(entry => entry.sections || []).flatMap(section => section.sources || []);
+const allowedHosts = ["www.anthropic.com","anthropic.com","platform.claude.com","code.claude.com"];
+const invalidTheorySources = theorySources.filter(source => {
+  try { return !allowedHosts.includes(new URL(source[1]).hostname); } catch { return true; }
+});
+check("All theory sources are official Anthropic domains", invalidTheorySources.length === 0, "invalid=" + invalidTheorySources.map(x => x[1]).join(","));
+check("Theory contains substantial source-backed depth", theorySources.length >= 20, "source links=" + theorySources.length);
 
 const bank = sandbox.window.CCARF_QUESTION_BANK || [];
 const meta = sandbox.window.CCARF_BANK_META || {};
